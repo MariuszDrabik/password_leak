@@ -1,3 +1,5 @@
 *.pdf
 /venv
 venv
+/venv
+*.pdf
