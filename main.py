@@ -1,10 +1,11 @@
 from requests import get
 import hashlib
 
-password_to_hash = "Mariusz1"
+password_to_hash = "oko123"
 
 passwd_hashed = hashlib.sha1(password_to_hash.encode())
-sample = 'e01dc0a4ab8236bdaa835dda82dd1d0b401b65bc'
+# hashed on site to check if it working:
+sample = 'a82bfd23636292f19c7663684be63713dc04dfe2'
 
 print("The hexadecimal equivalent of SHA-1 is : ")
 print(passwd_hashed.hexdigest())
