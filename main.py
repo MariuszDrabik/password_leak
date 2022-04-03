@@ -50,9 +50,14 @@ api = 'https://api.pwnedpasswords.com/range/'
 class IsLeaked:
     def __init__(self, passwd):
         self.passwd = passwd
+        self.hashing()
 
     def hashing(self):
-        self.hashed = hashlib.sha1(self.passwd.encode())
+        hashed = hashlib.sha1(self.passwd.encode())
+        self.hashed = hashed.hexdigest()
+
+    def pawned_passwd(self):
+        print(self.hashed[:5])
 
 
 class PasswordValidator:
@@ -103,6 +108,8 @@ class Main:
                     checked_word = PasswordValidator(passwd)
                     if checked_word.check():
                         print('Zajebiste hasło', passwd)
+                        oko = IsLeaked(passwd)
+                        oko.pawned_passwd()
                 except (LengthError,
                         SpecialCharError,
                         CapsError,
