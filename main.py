@@ -1,4 +1,3 @@
-from re import L
 from requests import get
 import hashlib
 
@@ -48,6 +47,14 @@ api = 'https://api.pwnedpasswords.com/range/'
 # print(request.status_code)
 
 
+class IsLeaked:
+    def __init__(self, passwd):
+        self.passwd = passwd
+
+    def hashing(self):
+        self.hashed = hashlib.sha1(self.passwd.encode())
+
+
 class PasswordValidator:
     def __init__(self, passwd):
         self.passwd = passwd
@@ -63,7 +70,7 @@ class PasswordValidator:
             if char.isupper():
                 return True
         raise CapsError('Password has not any capital letter')
-    
+
     def numbers_check(self):
         for char in self.passwd:
             if char.isnumeric():
@@ -75,12 +82,13 @@ class PasswordValidator:
         if any(char in special_characters for char in self.passwd):
             return True
         raise SpecialCharError('Password has not any special character')
-    
+
     def check(self):
-        self.length_check()
-        self.caps_check()
-        self.numbers_check()
-        self.special_char_check()
+        checks = (self.length_check(),
+                  self.caps_check(),
+                  self.numbers_check(),
+                  self.special_char_check(),)
+        return all(checks)
 
 
 class Main:
@@ -94,8 +102,11 @@ class Main:
                 try:
                     checked_word = PasswordValidator(passwd)
                     if checked_word.check():
-                        print('Zajebiste hsało', passwd)
-                except (LengthError, SpecialCharError, CapsError, NumberError) as e:
+                        print('Zajebiste hasło', passwd)
+                except (LengthError,
+                        SpecialCharError,
+                        CapsError,
+                        NumberError) as e:
                     print(passwd, e)
 
 
