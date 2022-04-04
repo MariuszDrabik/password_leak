@@ -83,7 +83,8 @@ class PasswordValidator:
         raise CapsError('Password has not any number')
 
     def special_char_check(self):
-        special_characters = '\"!@#$%^&*()-+?_=,<>/\|[]\{\}'
+        special_characters = '\"!@#$%^&*()-+?_=,<>/\|[]{}'
+        print(special_characters)
         if any(char in special_characters for char in self.passwd):
             return True
         raise SpecialCharError('Password has not any special character')
