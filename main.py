@@ -2,7 +2,7 @@ from requests import get
 import hashlib
 
 
-class LengthError(Exception):
+class LengthException(Exception):
     def __init__(self, *args):
         if args:
             self.message = args[0]
@@ -16,15 +16,15 @@ class LengthError(Exception):
             return 'Password to short'
 
 
-class SpecialCharError(Exception):
+class SpecialCharException(Exception):
     pass
 
 
-class CapsError(Exception):
+class LetterException(Exception):
     pass
 
 
-class NumberError(Exception):
+class NumberException(Exception):
     pass
 
 
@@ -32,32 +32,30 @@ class PwnedException(Exception):
     pass
 
 
-password_to_hash = "oko123"
-
-passwd_hashed = hashlib.sha1(password_to_hash.encode())
-# hashed on site to check if it working:
-sample = 'a82bfd23636292f19c7663684be63713dc04dfe2'
-
-print("The hexadecimal equivalent of SHA-1 is : ")
-print(passwd_hashed.hexdigest())
-print(sample)
-api = 'https://api.pwnedpasswords.com/range/'
-
-# request = get(api)
-# print(request.status_code)
-
-
 class IsLeaked:
+
+    API = 'https://api.pwnedpasswords.com/range/'
+
     def __init__(self, passwd):
         self.passwd = passwd
-        self.hashing()
+        self._hashed = None
+        self._leaked = []
+        self._hashing()
 
-    def hashing(self):
+    def _hashing(self):
         hashed = hashlib.sha1(self.passwd.encode())
-        self.hashed = hashed.hexdigest()
+        self._hashed = hashed.hexdigest()
 
+    def get_hashes_from_api(self):
+        passwd = IsLeaked.API + self._hashed[:5]
+        request = get(passwd)
+        self._leaked = [i.split(':')[0].strip() for i in request.text.split()]
+        
     def pawned_passwd(self):
-        print(self.hashed[:5])
+        self.get_hashes_from_api()
+        if self._hashed.upper()[5:] in self._leaked:
+            raise PwnedException('Password leaked')
+        return True
 
 
 class PasswordValidator:
@@ -67,31 +65,37 @@ class PasswordValidator:
 
     def length_check(self):
         if len(self.passwd) < 8:
-            raise LengthError('Password is too short budy')
+            raise LengthException('Password is too short budy')
         return True
 
     def caps_check(self):
         for char in self.passwd:
             if char.isupper():
                 return True
-        raise CapsError('Password has not any capital letter')
+        raise LetterException('Password has not any capital letter')
+
+    def lower_check(self):
+        for char in self.passwd:
+            if char.islower():
+                return True
+        raise LetterException('Password has not any lower letter')
 
     def numbers_check(self):
         for char in self.passwd:
             if char.isnumeric():
                 return True
-        raise CapsError('Password has not any number')
+        raise NumberException('Password has not any number')
 
     def special_char_check(self):
-        special_characters = '\"!@#$%^&*()-+?_=,<>/\|[]{}'
-        print(special_characters)
+        special_characters = '"!@#$%^&*()-+?_=,<>/|\\[]{}'
         if any(char in special_characters for char in self.passwd):
             return True
-        raise SpecialCharError('Password has not any special character')
+        raise SpecialCharException('Password has not any special character')
 
     def check(self):
         checks = (self.length_check(),
                   self.caps_check(),
+                  self.lower_check(),
                   self.numbers_check(),
                   self.special_char_check(),)
         return all(checks)
@@ -106,20 +110,18 @@ class Main:
             for i in file:
                 passwd = i.strip()
                 try:
-                    checked_word = PasswordValidator(passwd)
-                    if checked_word.check():
-                        print('Zajebiste hasło', passwd)
-                        oko = IsLeaked(passwd)
-                        oko.pawned_passwd()
-                except (LengthError,
-                        SpecialCharError,
-                        CapsError,
-                        NumberError) as e:
-                    print(passwd, e)
-
+                    if PasswordValidator(passwd).check():
+                        if IsLeaked(passwd).pawned_passwd():
+                            with open('good_passwd.txt', mode='a', encoding='utf8') as good:
+                                good.write(f'{passwd}\n')
+                except (LengthException,
+                        SpecialCharException,
+                        LetterException,
+                        NumberException,
+                        PwnedException) as e:
+                    with open('weak_passwd.txt', mode='a', encoding='utf8') as bad:
+                        bad.write(f'{passwd}: {e}\n')
 
 
 if __name__ == '__main__':
     Main().run()
-
-
