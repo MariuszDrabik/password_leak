@@ -9,8 +9,6 @@ from modules.Exceptions import (
 
 
 class Main:
-    def __init__(self):
-        pass
 
     def save_good(self, passwd):
         if not passwd:

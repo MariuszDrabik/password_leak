@@ -6,3 +6,4 @@ venv
 weak_passwd.txt
 good_passwd.txt
 __pycache__
+.pytest*
