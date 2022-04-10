@@ -5,3 +5,4 @@ venv
 *.pdf
 weak_passwd.txt
 good_passwd.txt
+__pycache__
